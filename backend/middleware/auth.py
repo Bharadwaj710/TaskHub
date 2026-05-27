@@ -18,10 +18,13 @@ def token_required(f):
             # 1. Try local JWT decoding (fast, secure, no network call)
             if Config.SUPABASE_JWT_SECRET:
                 try:
+                    header = jwt.get_unverified_header(token)
+                    alg = header.get("alg", "HS256")
+                    print(f"DEBUG JWT: header={header}")
                     payload = jwt.decode(
                         token,
                         Config.SUPABASE_JWT_SECRET,
-                        algorithms=["HS256"],
+                        algorithms=[alg],
                         audience="authenticated"
                     )
                     request.user_id = payload.get("sub")
