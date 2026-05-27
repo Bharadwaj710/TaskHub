@@ -2,6 +2,31 @@
 
 OpsPulse is a high-performance, collaborative task management application built with a modern decoupled architecture. It features a responsive Next.js frontend (with support for Dark Mode) and a secured Flask REST API backend, backed by PostgreSQL database and Google OAuth via Supabase.
 
+<br />
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Secure Google Authentication</b></td>
+      <td align="center"><b>Clean Light Mode Dashboard</b></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/1-login.png" alt="Login Page" width="400"/></td>
+      <td><img src="screenshots/2-dashboard-light.png" alt="Dashboard Light Mode" width="400"/></td>
+    </tr>
+    <tr>
+      <td align="center"><b>Task Management Modals</b></td>
+      <td align="center"><b>Native Dark Mode Engine</b></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/3-edit-task.png" alt="Edit Task" width="400"/></td>
+      <td><img src="screenshots/4-dashboard-dark.png" alt="Create Task Dark Mode" width="400"/></td>
+    </tr>
+  </table>
+</div>
+
+<br />
+
 ---
 
 ## 🌟 Key Features
