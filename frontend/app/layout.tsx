@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OpsPulse Task Management",
+  title: "NexTask Task Management",
   description: "A premium task management application with async email notifications",
 };
 

@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
             <CheckSquare className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg text-slate-900 dark:text-slate-50 tracking-tight">OpsPulse</span>
+          <span className="font-bold text-lg text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -89,7 +89,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
                 <CheckSquare className="h-5.5 w-5.5" />
               </div>
-              <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">OpsPulse</span>
+              <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
             </div>
             
             {/* Close sidebar button for mobile */}

@@ -13,7 +13,7 @@ def create_app():
 
     @app.route('/')
     def root_health_check():
-        return jsonify({"status": "healthy", "service": "OpsPulse API"}), 200
+        return jsonify({"status": "healthy", "service": "NexTask API"}), 200
 
     with app.app_context():
         # In production, use migrations and avoid running DDL commands on startup.
