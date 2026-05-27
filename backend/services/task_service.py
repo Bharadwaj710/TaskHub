@@ -13,17 +13,23 @@ class TaskService:
             assigned_to=data.get('assigned_to')
         )
         db.session.add(task)
-        db.session.commit()
+        db.session.flush() # Flush to get the task.id without committing yet
         
         # Log the activity
         log = ActivityLog(task_id=task.id, action="Task Created", performed_by=user_id)
         db.session.add(log)
-        db.session.commit()
+        
+        db.session.commit() # Single commit for both task and log
         
         # Send Email Notification if assigned
         if task.assigned_to:
-            assignee = db.session.get(User, task.assigned_to)
-            assigner = db.session.get(User, user_id)
+            # Fetch both users in a single query
+            users = User.query.filter(User.id.in_([task.assigned_to, user_id])).all()
+            user_map = {str(u.id): u for u in users}
+            
+            assignee = user_map.get(str(task.assigned_to))
+            assigner = user_map.get(str(user_id))
+            
             if assignee and assignee.email:
                 assigner_name = assigner.name if assigner else "A team member"
                 EmailService.send_task_assigned_email(assignee.email, task.title, assigner_name)
@@ -56,25 +62,32 @@ class TaskService:
         if status == 'Completed':
             task.completed_at = datetime.utcnow()
         
-        db.session.commit()
+        # Flush to persist status before logging, but do not commit yet
+        db.session.flush()
         
         log = ActivityLog(task_id=task.id, action=f"Status changed to {status}", performed_by=user_id)
         db.session.add(log)
-        db.session.commit()
+        
+        db.session.commit() # Single commit
         
         # Send Email Notification if completed and status actually changed
         if status == 'Completed' and old_status != 'Completed':
-            completer = db.session.get(User, user_id)
+            # Fetch all needed users in a single query to reduce latency
+            user_ids_to_fetch = [uid for uid in [user_id, task.created_by, task.assigned_to] if uid]
+            users = User.query.filter(User.id.in_(user_ids_to_fetch)).all()
+            user_map = {str(u.id): u for u in users}
+            
+            completer = user_map.get(user_id_str)
             completer_name = completer.name if completer else "A team member"
             
             # Notify creator
-            creator = db.session.get(User, task.created_by)
+            creator = user_map.get(created_by_str)
             if creator and creator.email and created_by_str != user_id_str:
                 EmailService.send_task_completed_email(creator.email, task.title, completer_name)
                 
             # Notify assignee if different from completer
             if assigned_to_str and assigned_to_str != user_id_str and assigned_to_str != created_by_str:
-                assignee = db.session.get(User, task.assigned_to)
+                assignee = user_map.get(assigned_to_str)
                 if assignee and assignee.email:
                     EmailService.send_task_completed_email(assignee.email, task.title, completer_name)
         
@@ -121,17 +134,21 @@ class TaskService:
         else:
             task.assigned_to = assigned_to
             
-        db.session.commit()
+        db.session.flush()
         
         log = ActivityLog(task_id=task.id, action="Task Updated", performed_by=user_id)
         db.session.add(log)
-        db.session.commit()
+        db.session.commit() # Single commit
         
         # Send Email Notification if assignee changed
         assigned_to_str = str(task.assigned_to) if task.assigned_to else None
         if assigned_to_str and assigned_to_str != old_assignee_str:
-            assignee = db.session.get(User, task.assigned_to)
-            assigner = db.session.get(User, user_id)
+            users = User.query.filter(User.id.in_([task.assigned_to, user_id])).all()
+            user_map = {str(u.id): u for u in users}
+            
+            assignee = user_map.get(assigned_to_str)
+            assigner = user_map.get(user_id_str)
+            
             if assignee and assignee.email:
                 assigner_name = assigner.name if assigner else "A team member"
                 EmailService.send_task_assigned_email(assignee.email, task.title, assigner_name)
