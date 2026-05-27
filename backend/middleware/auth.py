@@ -21,12 +21,31 @@ def token_required(f):
                     header = jwt.get_unverified_header(token)
                     alg = header.get("alg", "HS256")
                     print(f"DEBUG JWT: header={header}")
-                    payload = jwt.decode(
-                        token,
-                        Config.SUPABASE_JWT_SECRET,
-                        algorithms=[alg],
-                        audience="authenticated"
-                    )
+                    
+                    try:
+                        # Try decoding with the raw secret string
+                        payload = jwt.decode(
+                            token,
+                            Config.SUPABASE_JWT_SECRET,
+                            algorithms=[alg],
+                            audience="authenticated"
+                        )
+                    except jwt.InvalidSignatureError:
+                        # Fallback: decode with base64-decoded secret bytes
+                        import base64
+                        try:
+                            # Pad the base64 secret to avoid incorrect padding exception
+                            padded_secret = Config.SUPABASE_JWT_SECRET + "=" * (-len(Config.SUPABASE_JWT_SECRET) % 4)
+                            decoded_secret = base64.b64decode(padded_secret)
+                            payload = jwt.decode(
+                                token,
+                                decoded_secret,
+                                algorithms=[alg],
+                                audience="authenticated"
+                            )
+                        except Exception:
+                            raise
+                            
                     request.user_id = payload.get("sub")
                     return f(*args, **kwargs)
                 except jwt.ExpiredSignatureError:

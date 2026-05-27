@@ -8,3 +8,4 @@ PyJWT==2.8.0
 supabase==2.4.0
 Flask-Migrate==4.0.5
 gunicorn==21.2.0
+httpx==0.26.0
