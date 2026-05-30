@@ -1,6 +1,6 @@
 from flask import Blueprint
 from controllers.ai_controller import AIController
-from utils.decorators import token_required
+from middleware.auth import token_required
 
 ai_bp = Blueprint('ai', __name__)
 
