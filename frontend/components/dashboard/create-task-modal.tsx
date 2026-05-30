@@ -160,7 +160,10 @@ export function CreateTaskModal({ currentUserId, onTaskCreated }: CreateTaskModa
             <Label htmlFor="assignee" className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Assignee</Label>
             <Select value={assignedTo} onValueChange={(val) => setAssignedTo(val || "")}>
               <SelectTrigger className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs cursor-pointer transition-colors duration-300">
-                <SelectValue placeholder={fetchingUsers ? "Loading team members..." : "Select team member"} />
+                <SelectValue placeholder={fetchingUsers ? "Loading team members..." : "Select team member"}>
+                  {assignedTo === "unassigned" ? "Personal" : 
+                    (assignedTo ? (users.find(u => u.id === assignedTo)?.name || assignedTo) : null)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="rounded-xl p-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none">
                 <SelectItem value="unassigned" className="text-xs font-medium px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Personal</SelectItem>
