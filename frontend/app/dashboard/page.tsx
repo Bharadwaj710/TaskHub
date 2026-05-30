@@ -93,11 +93,7 @@ export default function DashboardPage() {
           console.error("Failed to sync user with backend:", syncRes.message);
         }
 
-        const promises = [fetchTasks(), fetchActivities()];
-        if (isAdmin) {
-          promises.push(fetchAnalytics());
-        }
-        await Promise.all(promises);
+        await Promise.all([fetchTasks(), fetchActivities()]);
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
@@ -133,7 +129,6 @@ export default function DashboardPage() {
     const pollInterval = setInterval(() => {
       fetchTasks();
       fetchActivities();
-      if (isAdmin) fetchAnalytics();
     }, 5000);
 
     return () => {
@@ -141,6 +136,15 @@ export default function DashboardPage() {
       clearInterval(pollInterval);
     };
   }, [loading]);
+
+  // Handle Admin Analytics Fetching
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAnalytics();
+      const analyticsInterval = setInterval(() => fetchAnalytics(), 5000);
+      return () => clearInterval(analyticsInterval);
+    }
+  }, [isAdmin]);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

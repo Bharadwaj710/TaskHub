@@ -72,9 +72,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   ];
 
   const adminNavItems = [
-    { name: 'All Tasks', icon: LayoutDashboard, href: '/dashboard' },
-    { name: 'Users', icon: Users, href: '/dashboard/admin/users' },
-    { name: 'Analytics', icon: BarChart3, href: '/dashboard/admin/analytics' },
+    { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'Users', icon: Users, href: '/dashboard/admin/users' }
   ];
 
   const navItems = isAdmin ? adminNavItems : userNavItems;

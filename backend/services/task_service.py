@@ -1,4 +1,4 @@
-from models.models import db, Task, ActivityLog, User
+from models.models import db, Task, ActivityLog, User, GeneratedImage
 from datetime import datetime
 from services.email_service import EmailService
 
