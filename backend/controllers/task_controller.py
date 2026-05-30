@@ -20,6 +20,57 @@ class TaskController:
             return api_response(False, str(e), status_code=500)
 
     @staticmethod
+    def upload_image():
+        if 'file' not in request.files:
+            return api_response(False, "No file provided", status_code=400)
+            
+        file = request.files['file']
+        if file.filename == '':
+            return api_response(False, "No file selected", status_code=400)
+            
+        # Validate extension
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+        ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        if ext not in allowed_extensions:
+            return api_response(False, "Invalid file type. Allowed: png, jpg, jpeg, webp", status_code=400)
+            
+        # Validate size
+        file_bytes = file.read()
+        if len(file_bytes) > 5 * 1024 * 1024:
+            return api_response(False, "File size exceeds 5MB limit", status_code=400)
+            
+        try:
+            import uuid
+            import requests
+            from config.config import Config
+            
+            filename = f"{uuid.uuid4()}.{ext}"
+            
+            # Using Supabase Storage REST API as a client isn't configured in the backend
+            url = f"{Config.SUPABASE_URL.rstrip('/')}/storage/v1/object/product-images/{filename}"
+            auth_key = Config.SUPABASE_SERVICE_ROLE_KEY or Config.SUPABASE_KEY
+            headers = {
+                "Authorization": f"Bearer {auth_key}",
+                "apikey": auth_key,
+                "Content-Type": file.content_type
+            }
+            
+            response = requests.post(url, headers=headers, data=file_bytes, timeout=15)
+            
+            if response.status_code != 200:
+                print(f"Storage upload failed: {response.text}")
+                return api_response(False, "Failed to upload image to storage", status_code=500)
+                
+            public_url = f"{Config.SUPABASE_URL.rstrip('/')}/storage/v1/object/public/product-images/{filename}"
+            
+            return api_response(True, "Image uploaded successfully", {"url": public_url})
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return api_response(False, f"Upload error: {str(e)}", status_code=500)
+
+    @staticmethod
     def get_tasks():
         try:
             tasks = TaskService.get_user_tasks(request.user_id)

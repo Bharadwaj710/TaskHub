@@ -38,6 +38,7 @@ export function CreateTaskModal({ currentUserId, onTaskCreated }: CreateTaskModa
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(false);
@@ -67,16 +68,30 @@ export function CreateTaskModal({ currentUserId, onTaskCreated }: CreateTaskModa
 
     setLoading(true);
     try {
+      let product_image_url: string | undefined = undefined;
+
+      if (imageFile) {
+        const uploadRes = await taskService.uploadProductImage(imageFile);
+        if (!uploadRes.success) {
+          toast.error(uploadRes.message || "Failed to upload image");
+          setLoading(false);
+          return;
+        }
+        product_image_url = uploadRes.data.url;
+      }
+
       const res = await taskService.createTask({
         title,
         description,
         assigned_to: assignedTo && assignedTo !== "unassigned" ? assignedTo : undefined,
+        product_image_url,
       });
       if (res.success) {
         setOpen(false);
         setTitle("");
         setDescription("");
         setAssignedTo("");
+        setImageFile(null);
         
         if (assignedTo && assignedTo !== "unassigned") {
           toast.success("Task created!", {
@@ -156,6 +171,18 @@ export function CreateTaskModal({ currentUserId, onTaskCreated }: CreateTaskModa
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="product-image" className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Product Image (Optional)</Label>
+            <Input
+              id="product-image"
+              type="file"
+              accept="image/png, image/jpeg, image/webp"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 rounded-xl px-3 py-2 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs transition-colors duration-300 file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-xs file:font-semibold file:px-3 file:py-1 file:rounded-full file:mr-3 hover:file:bg-indigo-100 cursor-pointer"
+            />
+            <p className="text-[10px] text-slate-400">Max size: 5MB. Formats: PNG, JPG, WEBP.</p>
           </div>
           
           <DialogFooter className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 justify-end">

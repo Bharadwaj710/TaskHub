@@ -29,6 +29,27 @@ export const taskService = {
     });
   },
 
+  async uploadProductImage(file: File): Promise<ApiResponse<{ url: string }>> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { success: false, message: "No active session", data: { url: "" } };
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/tasks/upload-image`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        // Note: Content-Type is purposely omitted so browser sets multipart boundary
+      },
+      body: formData,
+    });
+
+    return response.json();
+  },
+
   async updateStatus(id: number, status: Task['status']): Promise<ApiResponse> {
     return fetchWithAuth("/tasks/status", {
       method: "PATCH",

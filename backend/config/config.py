@@ -12,6 +12,7 @@ class Config:
     SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     # Role Management
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").lower().strip()
     # Email (SMTP kept for reference; Resend replaces in Phase 8)

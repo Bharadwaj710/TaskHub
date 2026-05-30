@@ -10,7 +10,8 @@ class TaskService:
             description=data.get('description', ''),
             status='Pending',
             created_by=user_id,
-            assigned_to=data.get('assigned_to')
+            assigned_to=data.get('assigned_to'),
+            product_image_url=data.get('product_image_url')
         )
         db.session.add(task)
         db.session.flush() # Flush to get the task.id without committing yet
