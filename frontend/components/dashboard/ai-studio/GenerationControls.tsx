@@ -9,7 +9,10 @@ import { toast } from "sonner";
 const MVP_TYPES = [
   { value: "White Background", label: "White Background (E-commerce)" },
   { value: "Luxury Background", label: "Luxury Theme (Marble/Gold)" },
-  { value: "Creative Background", label: "Creative Theme (Lifestyle)" }
+  { value: "Creative Background", label: "Creative Theme (Lifestyle)" },
+  { value: "Model Front", label: "Model Wearing (Front View)" },
+  { value: "Model Side", label: "Model Wearing (Side Angle)" },
+  { value: "Model Closeup", label: "Model Wearing (Close-up)" }
 ];
 
 interface GenerationControlsProps {
