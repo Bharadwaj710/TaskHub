@@ -10,6 +10,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -140,21 +141,29 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-4 pt-4 pb-2">
-          {task.product_image_url ? (
-            <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={task.product_image_url} alt="Product" className="h-full w-full object-cover" />
+        <div className="flex items-center justify-between pt-4 pb-2">
+          <div className="flex items-center gap-4">
+            {task.product_image_url ? (
+              <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={task.product_image_url} alt="Product" className="h-full w-full object-cover" />
+              </div>
+            ) : (
+              <div className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">No Image</span>
+              </div>
+            )}
+            <div className="text-sm text-slate-500 dark:text-slate-400 flex flex-col justify-center">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Product Image</span>
+              <span className="text-xs">{task.product_image_url ? "Image provided during creation." : "No product image uploaded."}</span>
             </div>
-          ) : (
-            <div className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">No Image</span>
-            </div>
-          )}
-          <div className="text-sm text-slate-500 dark:text-slate-400 flex flex-col justify-center">
-            <span className="font-semibold text-slate-700 dark:text-slate-300">Product Image</span>
-            <span className="text-xs">{task.product_image_url ? "Image provided during creation." : "No product image uploaded."}</span>
           </div>
+          
+          <Link href={`/dashboard/tasks/${task.id}`} onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:hover:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-800 rounded-xl h-9 px-4">
+              Open AI Studio
+            </Button>
+          </Link>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 py-2">

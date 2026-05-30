@@ -81,6 +81,11 @@ class TaskService:
                 raise PermissionError("You can only transition to In Progress from Assigned or Revision Requested")
             elif status == 'Submitted' and old_status != 'In Progress':
                 raise PermissionError("You can only submit a task that is In Progress")
+            elif status == 'Submitted':
+                from models.models import GeneratedImage
+                image_count = GeneratedImage.query.filter_by(task_id=task_id).count()
+                if image_count == 0:
+                    raise PermissionError("You must generate at least one image before submitting the task")
             elif status not in ['In Progress', 'Submitted']:
                 raise PermissionError(f"Assignees cannot change status to {status}")
                 

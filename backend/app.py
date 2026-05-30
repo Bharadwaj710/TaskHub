@@ -45,9 +45,11 @@ def create_app():
     from routes.auth_routes import auth_bp
     from routes.task_routes import task_bp
     from routes.user_routes import user_bp
+    from routes.ai_routes import ai_bp
     app.register_blueprint(auth_bp, url_prefix='/api')
     app.register_blueprint(task_bp, url_prefix='/api/tasks')
     app.register_blueprint(user_bp, url_prefix='/api/users')
+    app.register_blueprint(ai_bp, url_prefix='/api')
 
     @app.route('/health', methods=['GET'])
     def health_check():
