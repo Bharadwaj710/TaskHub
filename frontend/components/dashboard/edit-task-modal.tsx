@@ -110,8 +110,8 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
+      <DialogTrigger render={
+        trigger || (
           <button 
             type="button"
             className="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
@@ -119,8 +119,8 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
           >
             <Pencil className="h-4.5 w-4.5" />
           </button>
-        )}
-      </DialogTrigger>
+        )
+      } />
       <DialogContent className="sm:max-w-[460px] rounded-2xl p-7 border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
