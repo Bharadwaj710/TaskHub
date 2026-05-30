@@ -94,45 +94,49 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
       whileHover={{ y: -2 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all duration-300 flex flex-col justify-between min-h-[200px]"
+      className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all duration-300 flex flex-col justify-between min-h-[200px]"
     >
-      <div className="space-y-3">
+      {/* Invisible overlay that makes the entire card clickable and opens the modal */}
+      {(task.created_by === currentUserId || task.assigned_to === currentUserId) && (
+        <EditTaskModal 
+          task={task} 
+          currentUserId={currentUserId} 
+          onTaskUpdated={onStatusChanged} 
+          trigger={
+            <div className="absolute inset-0 z-0 cursor-pointer rounded-2xl" title={task.created_by === currentUserId ? "Click to edit task" : "Click to view full task details"} />
+          }
+        />
+      )}
+
+      <div className="relative z-10 space-y-3 pointer-events-none">
         {/* Top Header */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-3 pointer-events-auto">
           <h4 className="text-[16px] font-semibold text-slate-900 dark:text-slate-50 tracking-tight line-clamp-1 flex-1 leading-snug">
             {task.title}
           </h4>
           
           <div className="flex items-center gap-1 shrink-0">
-            {/* View/Edit Task Modal - Available to both Creator and Assignee */}
-            {(task.created_by === currentUserId || task.assigned_to === currentUserId) && (
-              <EditTaskModal task={task} currentUserId={currentUserId} onTaskUpdated={onStatusChanged} />
-            )}
-            
             {/* Delete button (only for creator) */}
             {task.created_by === currentUserId && (
               <button 
                 onClick={handleDeleteTask}
-                  disabled={deleting}
-                  className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer disabled:opacity-50"
-                  title="Delete Task"
-                >
-                  {deleting ? (
-                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4.5 w-4.5" />
-                  )}
-                </button>
+                disabled={deleting}
+                className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer disabled:opacity-50"
+                title="Delete Task"
+              >
+                {deleting ? (
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4.5 w-4.5" />
+                )}
+              </button>
             )}
 
-            {/* Status Dropdown Trigger on 3-Dots */}
+            {/* Status Dropdown */}
             <Select value={localStatus} onValueChange={(val) => val && handleStatusChange(val as TaskStatus)}>
-              <SelectTrigger className="border-none shadow-none p-0 h-auto w-auto bg-transparent focus:ring-0 focus-visible:ring-0 cursor-pointer">
-                <div className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                  <MoreVertical className="h-4.5 w-4.5" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl p-1.5 min-w-[140px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none" align="end" alignItemWithTrigger={false}>
+              {/* SelectTrigger automatically injects a chevron. We use it directly. */}
+              <SelectTrigger className="h-7 w-auto bg-slate-50 dark:bg-slate-800/60 border-none shadow-none focus:ring-0 focus-visible:ring-0 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-xs font-medium rounded-lg px-2" aria-label="Change Status" />
+              <SelectContent className="rounded-2xl p-1.5 min-w-[140px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none" align="end">
                 <SelectItem value="Pending" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Pending</SelectItem>
                 <SelectItem value="In Progress" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">In Progress</SelectItem>
                 <SelectItem value="Completed" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Completed</SelectItem>
@@ -141,7 +145,7 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
           </div>
         </div>
 
-        {/* Static Status Badge */}
+        {/* Static Status Badge - Optional now that we have a status dropdown visible, but keeping for color context */}
         <div>
           <div className={`inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-medium transition-colors ${statusColors[localStatus]}`}>
             {localStatus}
@@ -149,13 +153,18 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
         </div>
 
         {/* Description */}
-        <p className="text-[14px] leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-2">
+        <p className="text-[14px] leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-2 mt-2">
           {task.description || "No description provided."}
         </p>
+        
+        {/* Click to view details prompt */}
+        <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium italic mt-1 opacity-80">
+          Click task to view complete details {task.product_image_url && "& product images"}
+        </div>
       </div>
 
       {/* Footer Meta Row */}
-      <div className="flex items-center justify-between pt-5 mt-4 border-t border-slate-100 dark:border-slate-800/80 flex-wrap gap-y-3">
+      <div className="relative z-10 pointer-events-auto flex items-center justify-between pt-5 mt-4 border-t border-slate-100 dark:border-slate-800/80 flex-wrap gap-y-3">
         {/* Date */}
         <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 shrink-0">
           <Calendar className="h-4 w-4" />
