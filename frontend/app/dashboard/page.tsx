@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { CreateTaskModal } from "@/components/dashboard/create-task-modal";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ActivityLog {
   id: number;
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const router = useRouter();
+  const { isAdmin } = useAuth();
 
   const fetchTasks = async () => {
     try {
@@ -178,7 +180,9 @@ export default function DashboardPage() {
 
         {/* Action icons */}
         <div className="flex items-center justify-end gap-3 shrink-0">
-          <CreateTaskModal currentUserId={currentUserId} onTaskCreated={fetchTasks} />
+          {isAdmin && (
+            <CreateTaskModal currentUserId={currentUserId} onTaskCreated={fetchTasks} />
+          )}
         </div>
       </div>
 

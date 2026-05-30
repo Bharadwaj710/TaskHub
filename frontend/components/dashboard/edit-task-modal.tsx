@@ -176,20 +176,41 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
           
           <div className="space-y-1.5">
             <Label htmlFor="edit-assignee" className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Assignee</Label>
-            <Select value={assignedTo} onValueChange={(val) => setAssignedTo(val || "unassigned")} disabled={!isCreator}>
-              <SelectTrigger className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs cursor-pointer transition-colors duration-300 disabled:opacity-70">
-                <SelectValue placeholder={fetchingUsers ? "Loading team members..." : "Select team member"} />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl p-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none">
-                <SelectItem value="unassigned" className="text-xs font-medium px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Personal</SelectItem>
-                {assignableUsers.map((user) => (
-                  <SelectItem key={user.id} value={user.id} className="text-xs font-medium px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
-                    {user.name} ({user.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isCreator ? (
+              <Select value={assignedTo} onValueChange={(val) => setAssignedTo(val || "unassigned")}>
+                <SelectTrigger className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs cursor-pointer transition-colors duration-300">
+                  <SelectValue placeholder={fetchingUsers ? "Loading team members..." : "Select team member"} />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl p-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none">
+                  <SelectItem value="unassigned" className="text-xs font-medium px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Personal</SelectItem>
+                  {/* Fallback for when users are still loading to prevent raw UUID display */}
+                  {assignedTo && assignedTo !== "unassigned" && !assignableUsers.find(u => u.id === assignedTo) && (
+                    <SelectItem value={assignedTo} className="hidden">
+                      {task.assigned_to_name || assignedTo}
+                    </SelectItem>
+                  )}
+                  {assignableUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.id} className="text-xs font-medium px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                      {user.name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 rounded-xl h-11 px-4 text-sm flex items-center">
+                {task.assigned_to_name === "Unassigned" || !task.assigned_to_name ? "Personal" : task.assigned_to_name}
+              </div>
+            )}
           </div>
+
+          {!isCreator && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Created By</Label>
+              <div className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 rounded-xl h-11 px-4 text-sm flex items-center">
+                {task.created_by_name || "System"}
+              </div>
+            </div>
+          )}
           
           <DialogFooter className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 justify-end">
             <DialogClose render={
