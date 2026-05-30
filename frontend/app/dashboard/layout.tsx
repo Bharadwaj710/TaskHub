@@ -3,24 +3,31 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { 
-  LogOut, 
-  CheckSquare, 
-  Menu, 
-  X, 
-  Sun, 
+import {
+  LogOut,
+  CheckSquare,
+  Menu,
+  X,
+  Sun,
   Moon,
-  ChevronRight
+  ChevronRight,
+  LayoutDashboard,
+  Users,
+  BarChart3,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+// Inner layout that consumes auth context
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userAvatar, setUserAvatar] = useState<string>("");
+  const { isAdmin, clearAuth } = useAuth();
+  const [userName, setUserName] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [userAvatar, setUserAvatar] = useState<string>('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("My Tasks");
+  const [activeTab, setActiveTab] = useState('My Tasks');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -44,9 +51,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        setUserName(session.user.user_metadata.full_name || "User");
-        setUserEmail(session.user.email || "");
-        setUserAvatar(session.user.user_metadata.avatar_url || "");
+        const meta = session.user.user_metadata;
+        setUserName(meta.full_name || meta.name || 'User');
+        setUserEmail(session.user.email || '');
+        setUserAvatar(meta.avatar_url || meta.picture || '');
       }
     };
     fetchUser();
@@ -54,12 +62,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    clearAuth();
     router.push('/login');
   };
 
-  const navItems = [
-    { name: "My Tasks", icon: CheckSquare },
+  // Role-based navigation: admin sees management items, users see their tasks
+  const userNavItems = [
+    { name: 'My Tasks', icon: ClipboardList, href: '/dashboard' },
   ];
+
+  const adminNavItems = [
+    { name: 'All Tasks', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'Users', icon: Users, href: '/dashboard/admin/users' },
+    { name: 'Analytics', icon: BarChart3, href: '/dashboard/admin/analytics' },
+  ];
+
+  const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row font-sans transition-colors duration-300">
@@ -89,13 +107,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
                 <CheckSquare className="h-5.5 w-5.5" />
               </div>
-              <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
+              <div>
+                <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
+                {/* Role badge */}
+                {isAdmin && (
+                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                    Admin
+                  </span>
+                )}
+              </div>
             </div>
-            
+
             {/* Close sidebar button for mobile */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileMenuOpen(false)}
               className="md:hidden text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
@@ -114,15 +140,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => {
                     setActiveTab(item.name);
                     setMobileMenuOpen(false);
+                    router.push(item.href);
                   }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[15px] font-medium transition-all duration-200 cursor-pointer ${
-                    isActive 
-                      ? "bg-indigo-50 dark:bg-indigo-950/55 text-indigo-600 dark:text-indigo-400 shadow-xs" 
-                      : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                    isActive
+                      ? 'bg-indigo-50 dark:bg-indigo-950/55 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
                   }`}
                 >
                   <div className="flex items-center gap-3.5">
-                    <Icon className={`h-5 w-5 ${isActive ? "text-indigo-600" : "text-slate-400 dark:text-slate-500"}`} />
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-600' : 'text-slate-400 dark:text-slate-500'}`} />
                     <span>{item.name}</span>
                   </div>
                 </button>
@@ -141,7 +168,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <img src={userAvatar} alt={userName} className="h-9 w-9 rounded-full object-cover shrink-0 ring-1 ring-slate-100 dark:ring-slate-800" />
               ) : (
                 <div className="h-9 w-9 rounded-full bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-extrabold text-sm shadow-inner shrink-0 animate-pulse">
-                  {userName.charAt(0) || "U"}
+                  {userName.charAt(0) || 'U'}
                 </div>
               )}
               <div className="min-w-0">
@@ -154,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Mode Switcher */}
           <div className="p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200/40 dark:border-slate-800/40 flex items-center gap-1 transition-colors duration-300">
-            <button 
+            <button
               onClick={() => toggleTheme('light')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-200 ${
                 theme === 'light'
@@ -165,7 +192,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Sun className="h-4 w-4 text-amber-500" />
               <span>Light</span>
             </button>
-            <button 
+            <button
               onClick={() => toggleTheme('dark')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-200 ${
                 theme === 'dark'
@@ -179,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Sign Out */}
-          <button 
+          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-sm font-medium tracking-tight cursor-pointer transition-colors"
           >
@@ -196,11 +223,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile overlay backdrop */}
       {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/25 z-30 md:hidden backdrop-blur-xs transition-opacity duration-300" 
+        <div
+          className="fixed inset-0 bg-black/25 z-30 md:hidden backdrop-blur-xs transition-opacity duration-300"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
     </div>
+  );
+}
+
+// Outer layout wraps with AuthProvider so all children can access auth context
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </AuthProvider>
   );
 }

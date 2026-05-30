@@ -9,6 +9,7 @@ class User(db.Model):
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     avatar_url = db.Column(db.String, nullable=True)
+    role = db.Column(db.String(10), nullable=False, default='user')  # 'admin' | 'user'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Task(db.Model):

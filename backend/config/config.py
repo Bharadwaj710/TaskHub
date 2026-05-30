@@ -12,6 +12,9 @@ class Config:
     SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+    # Role Management
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").lower().strip()
+    # Email (SMTP kept for reference; Resend replaces in Phase 8)
     SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
     SMTP_USERNAME = os.getenv("SMTP_USERNAME")

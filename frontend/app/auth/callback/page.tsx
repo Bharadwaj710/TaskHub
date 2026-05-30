@@ -4,23 +4,25 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { authService } from "@/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const { setAuth } = useAuth();
 
   useEffect(() => {
     const handleAuth = async () => {
       // Supabase client automatically processes the hash fragment and saves the session.
       const { data: { session }, error } = await supabase.auth.getSession();
-      
+
       if (error || !session) {
         console.error("Auth error:", error);
         router.push("/login");
         return;
       }
 
-      // Sync user with our Flask backend with retry logic to handle cold starts/db connections
+      // Sync user with our Flask backend with retry logic to handle cold starts.
       let attempts = 3;
       let success = false;
       let lastErrorMessage = "";
@@ -28,8 +30,11 @@ export default function AuthCallbackPage() {
       while (attempts > 0 && !success) {
         try {
           const syncRes = await authService.syncUser();
-          if (syncRes.success) {
+          if (syncRes.success && syncRes.data) {
+            // Persist role + userId to AuthContext (which also persists to localStorage)
+            setAuth(syncRes.data.id, syncRes.data.role);
             success = true;
+            // All roles go to /dashboard for now; role-based redirect added in Phase 5
             router.push("/dashboard");
             return;
           } else {
@@ -44,7 +49,6 @@ export default function AuthCallbackPage() {
 
         attempts--;
         if (attempts > 0) {
-          // Wait 1.5 seconds before retrying
           await new Promise((resolve) => setTimeout(resolve, 1500));
         }
       }
@@ -56,7 +60,7 @@ export default function AuthCallbackPage() {
     };
 
     handleAuth();
-  }, [router]);
+  }, [router, setAuth]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
