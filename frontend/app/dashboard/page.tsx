@@ -38,6 +38,7 @@ export default function DashboardPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [analytics, setAnalytics] = useState<import("@/types").AnalyticsData | null>(null);
   const router = useRouter();
   const { isAdmin } = useAuth();
 
@@ -63,6 +64,17 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchAnalytics = async () => {
+    try {
+      const res = await taskService.getAnalytics();
+      if (res.success) {
+        setAnalytics(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    }
+  };
+
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
@@ -81,7 +93,11 @@ export default function DashboardPage() {
           console.error("Failed to sync user with backend:", syncRes.message);
         }
 
-        await Promise.all([fetchTasks(), fetchActivities()]);
+        const promises = [fetchTasks(), fetchActivities()];
+        if (isAdmin) {
+          promises.push(fetchAnalytics());
+        }
+        await Promise.all(promises);
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
@@ -117,6 +133,7 @@ export default function DashboardPage() {
     const pollInterval = setInterval(() => {
       fetchTasks();
       fetchActivities();
+      if (isAdmin) fetchAnalytics();
     }, 5000);
 
     return () => {
@@ -194,8 +211,33 @@ export default function DashboardPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400">Here&apos;s what&apos;s happening with your tasks today.</p>
       </div>
 
-      {/* Metrics Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Admin Platform Analytics */}
+      {isAdmin && analytics && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Platform Analytics</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+            {[
+              { label: "Total Users", value: analytics.total_users },
+              { label: "Total Tasks", value: analytics.total_tasks },
+              { label: "AI Images", value: analytics.generated_images },
+              { label: "Assigned", value: analytics.assigned_tasks },
+              { label: "In Progress", value: analytics.in_progress_tasks },
+              { label: "Submitted", value: analytics.submitted_tasks },
+              { label: "Accepted", value: analytics.accepted_tasks },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col justify-center shadow-sm dark:shadow-none hover:shadow-md transition-all duration-300">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase mb-1">{stat.label}</span>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-none">{stat.value}</h2>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Your Metrics Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
         {/* Total Tasks */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-sm dark:shadow-none hover:shadow-md transition-all duration-300">
           <div className="space-y-2.5">

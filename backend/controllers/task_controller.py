@@ -171,3 +171,11 @@ class TaskController:
             return api_response(True, "Activity logs fetched successfully", data)
         except Exception as e:
             return api_response(False, str(e), status_code=500)
+
+    @staticmethod
+    def get_analytics():
+        try:
+            analytics_data = TaskService.get_analytics()
+            return api_response(True, "Analytics retrieved successfully", analytics_data)
+        except Exception as e:
+            return api_response(False, str(e), status_code=500)

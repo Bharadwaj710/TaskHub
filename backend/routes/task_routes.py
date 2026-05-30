@@ -11,3 +11,4 @@ task_bp.route('/status', methods=['PATCH'], strict_slashes=False)(token_required
 task_bp.route('/activities', methods=['GET'], strict_slashes=False)(token_required(TaskController.get_activities))
 task_bp.route('/<int:task_id>', methods=['DELETE'], strict_slashes=False)(token_required(TaskController.delete_task))
 task_bp.route('/<int:task_id>', methods=['PUT'], strict_slashes=False)(token_required(TaskController.update_task))
+task_bp.route('/analytics', methods=['GET'], strict_slashes=False)(token_required(admin_required(TaskController.get_analytics)))

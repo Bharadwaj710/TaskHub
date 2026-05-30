@@ -73,4 +73,8 @@ export const taskService = {
   async getActivities(): Promise<ApiResponse<any[]>> {
     return fetchWithAuth("/tasks/activities");
   },
+
+  async getAnalytics(): Promise<ApiResponse<import("@/types").AnalyticsData>> {
+    return fetchWithAuth("/tasks/analytics");
+  },
 };

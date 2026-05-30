@@ -39,3 +39,13 @@ export interface ApiResponse<T = unknown> {
   message: string;
   data: T;
 }
+
+export interface AnalyticsData {
+  total_users: number;
+  total_tasks: number;
+  generated_images: number;
+  assigned_tasks: number;
+  in_progress_tasks: number;
+  submitted_tasks: number;
+  accepted_tasks: number;
+}

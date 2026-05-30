@@ -237,3 +237,23 @@ class TaskService:
             ActivityLog.task_id.in_(task_ids)
         ).order_by(ActivityLog.created_at.desc()).limit(50).all()
         return logs
+
+    @staticmethod
+    def get_analytics():
+        total_users = User.query.count()
+        total_tasks = Task.query.count()
+        generated_images = GeneratedImage.query.count()
+        
+        # Get tasks by status
+        tasks_by_status = db.session.query(Task.status, db.func.count(Task.id)).group_by(Task.status).all()
+        status_counts = {status: count for status, count in tasks_by_status}
+        
+        return {
+            "total_users": total_users,
+            "total_tasks": total_tasks,
+            "generated_images": generated_images,
+            "assigned_tasks": status_counts.get("Assigned", 0),
+            "in_progress_tasks": status_counts.get("In Progress", 0),
+            "submitted_tasks": status_counts.get("Submitted", 0),
+            "accepted_tasks": status_counts.get("Accepted", 0),
+        }
