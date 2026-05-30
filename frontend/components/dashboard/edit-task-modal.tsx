@@ -75,23 +75,18 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
     setLoading(true);
     try {
       const targetAssignee = assignedTo === "unassigned" ? null : assignedTo;
+    if (!title.trim() || !isCreator) return;
+
+    setLoading(true);
+    try {
       const res = await taskService.updateTask(task.id, {
         title,
         description,
-        assigned_to: targetAssignee || undefined,
+        assigned_to: assignedTo && assignedTo !== "unassigned" ? assignedTo : undefined,
       });
-
       if (res.success) {
         setOpen(false);
-        
-        if (targetAssignee && targetAssignee !== task.assigned_to) {
-          toast.success("Task updated!", {
-            description: "Assignment email notification dispatched in background.",
-          });
-        } else {
-          toast.success("Task updated successfully!");
-        }
-        
+        toast.success("Task updated successfully!");
         onTaskUpdated();
       } else {
         toast.error(res.message || "Failed to update task");
@@ -99,6 +94,25 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
     } catch (error) {
       console.error("Failed to update task:", error);
       toast.error("Failed to update task due to network error.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus: TaskStatus) => {
+    setLoading(true);
+    try {
+      const res = await taskService.updateTaskStatus(task.id, newStatus);
+      if (res.success) {
+        setOpen(false);
+        toast.success(`Task marked as ${newStatus}`);
+        onTaskUpdated();
+      } else {
+        toast.error(res.message || "Failed to update status");
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status due to network error.");
     } finally {
       setLoading(false);
     }
@@ -209,26 +223,50 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
             </div>
           )}
           
-          <DialogFooter className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 justify-end">
+          <DialogFooter className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 justify-end flex-wrap">
             <DialogClose render={
               <Button type="button" variant="outline" className="border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 bg-transparent cursor-pointer rounded-xl h-11 text-sm font-semibold px-5 transition-colors">
-                {isCreator ? "Cancel" : "Close"}
+                Close
               </Button>
             } />
+            
+            {/* Assignee Actions */}
+            {!isCreator && task.status === 'Assigned' && (
+              <Button type="button" onClick={() => handleStatusUpdate("In Progress")} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start Work"}
+              </Button>
+            )}
+            {!isCreator && task.status === 'In Progress' && (
+              <Button type="button" onClick={() => handleStatusUpdate("Submitted")} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Work"}
+              </Button>
+            )}
+            {!isCreator && task.status === 'Revision Requested' && (
+              <Button type="button" onClick={() => handleStatusUpdate("In Progress")} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Resume Work"}
+              </Button>
+            )}
+
+            {/* Admin Actions */}
+            {isCreator && task.status === 'Submitted' && (
+              <>
+                <Button type="button" variant="outline" onClick={() => handleStatusUpdate("Revision Requested")} disabled={loading} className="border-amber-200 hover:bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:hover:bg-amber-900/30 dark:text-amber-400 font-semibold cursor-pointer rounded-xl h-11 text-sm px-5">
+                  Request Revision
+                </Button>
+                <Button type="button" onClick={() => handleStatusUpdate("Accepted")} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5 shadow-sm shadow-emerald-500/20">
+                  Accept
+                </Button>
+              </>
+            )}
+
+            {/* Admin Save Details */}
             {isCreator && (
               <Button
                 type="submit"
                 disabled={loading || !title.trim()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5 transition-colors shadow-sm shadow-indigo-500/10"
+                className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:hover:bg-slate-200 dark:text-slate-900 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5 transition-colors"
               >
-                {loading ? (
-                  <div className="flex items-center gap-1.5">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Saving...
-                  </div>
-                ) : (
-                  "Save Changes"
-                )}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Details"}
               </Button>
             )}
           </DialogFooter>

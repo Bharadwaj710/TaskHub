@@ -5,19 +5,30 @@ from services.email_service import EmailService
 class TaskService:
     @staticmethod
     def create_task(data, user_id):
+        assigned_to = data.get('assigned_to')
+        status = 'Assigned' if assigned_to else 'Pending'
+        assigned_at = datetime.utcnow() if assigned_to else None
+        
         task = Task(
             title=data['title'],
             description=data.get('description', ''),
-            status='Pending',
+            status=status,
             created_by=user_id,
-            assigned_to=data.get('assigned_to'),
+            assigned_to=assigned_to,
+            assigned_at=assigned_at,
             product_image_url=data.get('product_image_url')
         )
         db.session.add(task)
         db.session.flush() # Flush to get the task.id without committing yet
         
         # Log the activity
-        log = ActivityLog(task_id=task.id, action="Task Created", performed_by=user_id)
+        log = ActivityLog(
+            task_id=task.id, 
+            action="Task Created", 
+            performed_by=user_id,
+            old_value=None,
+            new_value={"status": status}
+        )
         db.session.add(log)
         
         db.session.commit() # Single commit for both task and log
@@ -50,47 +61,86 @@ class TaskService:
         if not task:
             return None
         
-        # Verify access: either created_by or assigned_to must match user_id
         created_by_str = str(task.created_by) if task.created_by else None
         assigned_to_str = str(task.assigned_to) if task.assigned_to else None
         user_id_str = str(user_id) if user_id else None
         
-        if created_by_str != user_id_str and assigned_to_str != user_id_str:
+        is_creator = (created_by_str == user_id_str)
+        is_assignee = (assigned_to_str == user_id_str)
+        
+        if not is_creator and not is_assignee:
             raise PermissionError("You do not have access to update this task")
         
         old_status = task.status
+        if old_status == status:
+            return task # No change
+            
+        # Strict State Machine Logic
+        if is_assignee and not is_creator:
+            if status == 'In Progress' and old_status not in ['Assigned', 'Revision Requested']:
+                raise PermissionError("You can only transition to In Progress from Assigned or Revision Requested")
+            elif status == 'Submitted' and old_status != 'In Progress':
+                raise PermissionError("You can only submit a task that is In Progress")
+            elif status not in ['In Progress', 'Submitted']:
+                raise PermissionError(f"Assignees cannot change status to {status}")
+                
+        if is_creator:
+            if status in ['Accepted', 'Revision Requested'] and old_status != 'Submitted':
+                raise PermissionError("You can only accept or request revision on Submitted tasks")
+            elif status not in ['Accepted', 'Revision Requested', 'Pending', 'In Progress', 'Assigned', 'Submitted']:
+                raise PermissionError("Invalid transition")
+
+        # Update Status and Timestamps
         task.status = status
-        if status == 'Completed':
+        if status == 'Submitted':
+            task.submitted_at = datetime.utcnow()
+        elif status == 'Accepted':
+            task.accepted_at = datetime.utcnow()
             task.completed_at = datetime.utcnow()
-        
-        # Flush to persist status before logging, but do not commit yet
+        elif status == 'In Progress' and old_status == 'Assigned':
+            pass
+            
+        # Flush to persist status before logging
         db.session.flush()
         
-        log = ActivityLog(task_id=task.id, action=f"Status changed to {status}", performed_by=user_id)
+        # Write JSON to Audit Log
+        log = ActivityLog(
+            task_id=task.id, 
+            action=f"Status changed to {status}", 
+            performed_by=user_id,
+            old_value={"status": old_status},
+            new_value={"status": status}
+        )
         db.session.add(log)
         
-        db.session.commit() # Single commit
+        db.session.commit()
         
-        # Send Email Notification if completed and status actually changed
-        if status == 'Completed' and old_status != 'Completed':
-            # Fetch all needed users in a single query to reduce latency
-            user_ids_to_fetch = [uid for uid in [user_id, task.created_by, task.assigned_to] if uid]
-            users = User.query.filter(User.id.in_(user_ids_to_fetch)).all()
-            user_map = {str(u.id): u for u in users}
+        # Fetch users for notifications
+        user_ids_to_fetch = [uid for uid in [user_id, task.created_by, task.assigned_to] if uid]
+        users = User.query.filter(User.id.in_(user_ids_to_fetch)).all()
+        user_map = {str(u.id): u for u in users}
+        
+        actor = user_map.get(user_id_str)
+        actor_name = actor.name if actor else "A team member"
+        
+        creator = user_map.get(created_by_str)
+        assignee = user_map.get(assigned_to_str)
+        
+        # Email Notifications
+        if status == 'Submitted' and creator and creator.email and created_by_str != user_id_str:
+            EmailService.send_task_submitted_email(creator.email, task.title, actor_name)
             
-            completer = user_map.get(user_id_str)
-            completer_name = completer.name if completer else "A team member"
+        elif status == 'Accepted' and assignee and assignee.email and assigned_to_str != user_id_str:
+            EmailService.send_task_accepted_email(assignee.email, task.title, actor_name)
             
-            # Notify creator
-            creator = user_map.get(created_by_str)
+        elif status == 'Revision Requested' and assignee and assignee.email and assigned_to_str != user_id_str:
+            EmailService.send_revision_requested_email(assignee.email, task.title, actor_name)
+            
+        elif status == 'Completed' and old_status != 'Completed':
             if creator and creator.email and created_by_str != user_id_str:
-                EmailService.send_task_completed_email(creator.email, task.title, completer_name)
-                
-            # Notify assignee if different from completer
-            if assigned_to_str and assigned_to_str != user_id_str and assigned_to_str != created_by_str:
-                assignee = user_map.get(assigned_to_str)
-                if assignee and assignee.email:
-                    EmailService.send_task_completed_email(assignee.email, task.title, completer_name)
+                EmailService.send_task_completed_email(creator.email, task.title, actor_name)
+            if assignee and assignee.email and assigned_to_str != user_id_str and assigned_to_str != created_by_str:
+                EmailService.send_task_completed_email(assignee.email, task.title, actor_name)
         
         return task
 
@@ -132,12 +182,25 @@ class TaskService:
         assigned_to = data.get('assigned_to')
         if assigned_to == 'unassigned' or not assigned_to:
             task.assigned_to = None
+            if task.status == 'Assigned':
+                task.status = 'Pending'
+                task.assigned_at = None
         else:
             task.assigned_to = assigned_to
+            if not old_assignee or old_assignee_str != str(assigned_to):
+                task.assigned_at = datetime.utcnow()
+                if task.status == 'Pending':
+                    task.status = 'Assigned'
             
         db.session.flush()
         
-        log = ActivityLog(task_id=task.id, action="Task Updated", performed_by=user_id)
+        log = ActivityLog(
+            task_id=task.id, 
+            action="Task Updated", 
+            performed_by=user_id,
+            old_value={"assigned_to": old_assignee_str},
+            new_value={"assigned_to": task.assigned_to}
+        )
         db.session.add(log)
         db.session.commit() # Single commit
         

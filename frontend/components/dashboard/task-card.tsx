@@ -132,20 +132,10 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
               </button>
             )}
 
-            {/* Status Dropdown */}
-            <Select value={localStatus} onValueChange={(val) => val && handleStatusChange(val as TaskStatus)}>
-              {/* SelectTrigger automatically injects a chevron. We use it directly. */}
-              <SelectTrigger className="h-7 w-auto bg-slate-50 dark:bg-slate-800/60 border-none shadow-none focus:ring-0 focus-visible:ring-0 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-xs font-medium rounded-lg px-2" aria-label="Change Status" />
-              <SelectContent className="rounded-2xl p-1.5 min-w-[140px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none" align="end">
-                <SelectItem value="Pending" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">Pending</SelectItem>
-                <SelectItem value="In Progress" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">In Progress</SelectItem>
-                <SelectItem value="Completed" className="text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Completed</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        {/* Static Status Badge - Optional now that we have a status dropdown visible, but keeping for color context */}
+        {/* Static Status Badge */}
         <div>
           <div className={`inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-medium transition-colors ${statusColors[localStatus]}`}>
             {localStatus}

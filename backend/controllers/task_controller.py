@@ -103,7 +103,7 @@ class TaskController:
         if not task_id or not status:
             return api_response(False, "Task ID and status are required", status_code=400)
             
-        valid_statuses = {'Pending', 'In Progress', 'Completed'}
+        valid_statuses = {'Pending', 'Assigned', 'In Progress', 'Submitted', 'Accepted', 'Revision Requested', 'Completed'}
         if status not in valid_statuses:
             return api_response(False, f"Invalid status. Must be one of {list(valid_statuses)}", status_code=400)
             

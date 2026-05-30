@@ -59,3 +59,45 @@ class EmailService:
         </html>
         """
         EmailService.send_email_async(assigner_email, subject, body)
+
+    @staticmethod
+    def send_task_submitted_email(admin_email, task_title, assignee_name):
+        subject = f"Task Submitted for Review: {task_title}"
+        body = f"""
+        <html>
+            <body>
+                <h2>Task Ready for Review</h2>
+                <p><strong>{assignee_name}</strong> has submitted the task <strong>{task_title}</strong> for your review.</p>
+                <p>Please log in to the dashboard to review and accept or request revisions.</p>
+            </body>
+        </html>
+        """
+        EmailService.send_email_async(admin_email, subject, body)
+
+    @staticmethod
+    def send_task_accepted_email(assignee_email, task_title, admin_name):
+        subject = f"Task Accepted: {task_title}"
+        body = f"""
+        <html>
+            <body>
+                <h2>Great job! Your task was accepted</h2>
+                <p><strong>{admin_name}</strong> has accepted your submission for the task: <strong>{task_title}</strong>.</p>
+                <p>Thank you for your hard work!</p>
+            </body>
+        </html>
+        """
+        EmailService.send_email_async(assignee_email, subject, body)
+
+    @staticmethod
+    def send_revision_requested_email(assignee_email, task_title, admin_name):
+        subject = f"Revision Requested: {task_title}"
+        body = f"""
+        <html>
+            <body>
+                <h2>Action Required: Revision Requested</h2>
+                <p><strong>{admin_name}</strong> has requested a revision for the task: <strong>{task_title}</strong>.</p>
+                <p>Please log in to the dashboard to review the feedback and resume your work.</p>
+            </body>
+        </html>
+        """
+        EmailService.send_email_async(assignee_email, subject, body)
