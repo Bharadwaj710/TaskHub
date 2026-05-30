@@ -103,7 +103,7 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
           currentUserId={currentUserId} 
           onTaskUpdated={onStatusChanged} 
           trigger={
-            <div className="absolute inset-0 z-0 cursor-pointer rounded-2xl" title={task.created_by === currentUserId ? "Click to edit task" : "Click to view full task details"} />
+            <button type="button" className="absolute inset-0 z-0 cursor-pointer rounded-2xl w-full h-full opacity-0 outline-none" title={task.created_by === currentUserId ? "Click to edit task" : "Click to view full task details"} />
           }
         />
       )}
