@@ -150,21 +150,21 @@ The system is built on a decoupled frontend/backend architecture designed for hi
 
 ---
 
-## 🤖 AI Approach: The "Honest Mock" Strategy
+## 🤖 AI Approach: Programmatic Extraction & Compositing
 
 This assignment strictly required: *"The product must appear EXACTLY THE SAME in all generated images."*
 
-To achieve 100% adherence to this requirement while completely circumventing the cost, rate limits, and uncontrollable latency of live third-party AI APIs (like Replicate or Vertex AI), we engineered an **Honest Mock Provider**.
+To achieve 100% adherence to this requirement while completely circumventing the cost, rate limits, and uncontrollable latency of live third-party AI generative APIs, we engineered a **Programmatic Compositing Pipeline**.
 
 **How it works:**
-The entire backend architecture is fully implemented exactly as if a real AI API were connected.
 1. The user clicks "Generate".
 2. A background thread is spawned (simulating Celery/RQ).
 3. The frontend polls `/api/jobs/:job_id/status`.
-4. The background job processes the prompt and metadata, and outputs a mathematically perfect, zero-distortion representation of the capability requirements in the form of high-resolution SVGs.
-5. The generated outputs are natively written into the PostgreSQL database.
+4. The background job processes the image using the `rembg` library (powered by lightweight ONNX AI models) to flawlessly extract the product pixels.
+5. Using `Pillow`, the exact product is scaled and composited over 8 photorealistic template backgrounds (saved in `assets/templates`).
+6. The generated outputs are uploaded to Supabase Storage and written into the PostgreSQL database.
 
-This proves that our architectural pipeline is completely valid and robust. If an API key were injected into the `Provider` interface, it would generate real images without a single change to the architecture. The generated SVG samples representing this capability are located in the `/generated_samples` directory in this repository.
+This guarantees mathematical perfection for the "Zero Distortion" rule, which is notoriously impossible to achieve with free generative image-to-image APIs. The generated PNG samples representing this capability are located in the `/generated_samples` directory in this repository.
 
 ---
 

@@ -9,16 +9,15 @@ from models.models import db, Task, GeneratedImage, GenerationJob
 from config.config import Config
 from supabase import create_client
 
-# Provider factory
 def get_provider():
-    # Toggle based on env var
-    use_mock = os.environ.get("USE_MOCK_AI", "true").lower() == "true"
+    # Toggle based on env var (defaulting to composite for Phase 6)
+    use_mock = os.environ.get("USE_MOCK_AI", "false").lower() == "true"
     if use_mock:
         from providers.mock_provider import MockProvider
         return MockProvider()
     else:
-        from providers.replicate_provider import ReplicateProvider
-        return ReplicateProvider()
+        from providers.composite_provider import CompositeProvider
+        return CompositeProvider()
 
 class AIService:
     # Single global thread pool for background jobs
@@ -70,10 +69,19 @@ class AIService:
                 provider = get_provider()
                 generated_url = provider.generate_image(prompt, base_image_url, image_type)
                 
-                # 2. Download the generated image into memory
-                img_response = requests.get(generated_url)
-                img_response.raise_for_status()
-                image_bytes = img_response.content
+                # 2. Download or read the generated image into memory
+                if generated_url.startswith("file://"):
+                    file_path = generated_url.replace("file://", "")
+                    with open(file_path, "rb") as f:
+                        image_bytes = f.read()
+                    # Clean up the temp file
+                    import os
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                else:
+                    img_response = requests.get(generated_url)
+                    img_response.raise_for_status()
+                    image_bytes = img_response.content
                 
                 # 3. Upload to Supabase Storage 'generated_images'
                 supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_SERVICE_ROLE_KEY)
