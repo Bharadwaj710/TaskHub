@@ -1,10 +1,12 @@
 from flask import Blueprint
 from controllers.ai_controller import AIController
 from middleware.auth import token_required
+from extensions import limiter
 
 ai_bp = Blueprint('ai', __name__)
 
 @ai_bp.route('/tasks/<int:task_id>/generate', methods=['POST'])
+@limiter.limit("10 per hour")
 @token_required
 def generate_image(task_id):
     return AIController.generate_image(task_id)

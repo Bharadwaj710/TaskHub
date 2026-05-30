@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from config.config import Config
 from models.models import db
+from extensions import limiter
 import os
 
 def create_app():
@@ -10,6 +11,7 @@ def create_app():
     
     CORS(app, resources={r"/*": {"origins": "*"}})
     db.init_app(app)
+    limiter.init_app(app)
 
     @app.route('/')
     def root_health_check():
