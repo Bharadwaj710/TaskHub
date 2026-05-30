@@ -76,7 +76,7 @@ class AIService:
                 image_bytes = img_response.content
                 
                 # 3. Upload to Supabase Storage 'generated_images'
-                supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY)
+                supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_SERVICE_ROLE_KEY)
                 file_extension = "png" # Assuming PNG output from SD/Mock
                 filename = f"{task_id}/{uuid.uuid4()}.{file_extension}"
                 
@@ -155,7 +155,7 @@ class AIService:
         try:
             filename = img.image_url.split('/')[-1]
             path = f"{img.task_id}/{filename}"
-            supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY)
+            supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_SERVICE_ROLE_KEY)
             supabase.storage.from_('generated_images').remove([path])
         except Exception as e:
             print(f"Error removing image from storage: {e}")
