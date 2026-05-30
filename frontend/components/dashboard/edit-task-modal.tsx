@@ -70,11 +70,6 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
-
-    setLoading(true);
-    try {
-      const targetAssignee = assignedTo === "unassigned" ? null : assignedTo;
     if (!title.trim() || !isCreator) return;
 
     setLoading(true);
