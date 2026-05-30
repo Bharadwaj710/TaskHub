@@ -97,7 +97,7 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
   const handleStatusUpdate = async (newStatus: TaskStatus) => {
     setLoading(true);
     try {
-      const res = await taskService.updateTaskStatus(task.id, newStatus);
+      const res = await taskService.updateStatus(task.id, newStatus);
       if (res.success) {
         setOpen(false);
         toast.success(`Task marked as ${newStatus}`);
