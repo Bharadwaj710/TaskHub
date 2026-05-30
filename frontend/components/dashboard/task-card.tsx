@@ -159,7 +159,10 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
         
         {/* Click to view details prompt */}
         <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium italic mt-1 opacity-80">
-          Click task to view complete details {task.product_image_url && "& product images"}
+          {task.created_by === currentUserId 
+            ? "Click task to edit details, description or assignment"
+            : `Click task to view complete details ${task.product_image_url ? "& product images" : ""}`
+          }
         </div>
       </div>
 
