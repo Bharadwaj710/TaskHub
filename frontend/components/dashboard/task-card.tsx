@@ -104,13 +104,15 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
           </h4>
           
           <div className="flex items-center gap-1 shrink-0">
-            {/* Edit & Delete buttons (only for creator) */}
+            {/* View/Edit Task Modal - Available to both Creator and Assignee */}
+            {(task.created_by === currentUserId || task.assigned_to === currentUserId) && (
+              <EditTaskModal task={task} currentUserId={currentUserId} onTaskUpdated={onStatusChanged} />
+            )}
+            
+            {/* Delete button (only for creator) */}
             {task.created_by === currentUserId && (
-              <>
-                <EditTaskModal task={task} currentUserId={currentUserId} onTaskUpdated={onStatusChanged} />
-                
-                <button 
-                  onClick={handleDeleteTask}
+              <button 
+                onClick={handleDeleteTask}
                   disabled={deleting}
                   className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer disabled:opacity-50"
                   title="Delete Task"
@@ -121,7 +123,6 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
                     <Trash2 className="h-4.5 w-4.5" />
                   )}
                 </button>
-              </>
             )}
 
             {/* Status Dropdown Trigger on 3-Dots */}

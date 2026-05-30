@@ -105,22 +105,26 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated }: EditTaskMo
 
   const assignableUsers = users.filter((user) => user.id !== currentUserId);
 
+  const isCreator = task.created_by === currentUserId;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={
         <button 
           type="button"
           className="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-          title="Edit Task"
+          title={isCreator ? "Edit Task" : "View Task"}
         >
           <Pencil className="h-4.5 w-4.5" />
         </button>
       } />
       <DialogContent className="sm:max-w-[460px] rounded-2xl p-7 border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">Edit task details</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
+            {isCreator ? "Edit task details" : "View task details"}
+          </DialogTitle>
           <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">
-            Modify the task title, description, or teammate assignment.
+            {isCreator ? "Modify the task title, description, or teammate assignment." : "View task details and product image."}
           </DialogDescription>
         </DialogHeader>
 
@@ -150,7 +154,8 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated }: EditTaskMo
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 shadow-2xs transition-colors duration-300"
+              disabled={!isCreator}
+              className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 shadow-2xs transition-colors duration-300 disabled:opacity-70"
             />
           </div>
           
@@ -161,14 +166,15 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated }: EditTaskMo
               placeholder="Provide a comprehensive breakdown of the deliverables..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-50 rounded-xl px-4 py-3 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 shadow-2xs min-h-[125px] resize-none transition-colors duration-300"
+              disabled={!isCreator}
+              className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-50 rounded-xl px-4 py-3 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 shadow-2xs min-h-[125px] resize-none transition-colors duration-300 disabled:opacity-70"
             />
           </div>
           
           <div className="space-y-1.5">
             <Label htmlFor="edit-assignee" className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Assignee</Label>
-            <Select value={assignedTo} onValueChange={(val) => setAssignedTo(val || "unassigned")}>
-              <SelectTrigger className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs cursor-pointer transition-colors duration-300">
+            <Select value={assignedTo} onValueChange={(val) => setAssignedTo(val || "unassigned")} disabled={!isCreator}>
+              <SelectTrigger className="w-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 rounded-xl h-11 px-4 text-sm focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-2xs cursor-pointer transition-colors duration-300 disabled:opacity-70">
                 <SelectValue placeholder={fetchingUsers ? "Loading team members..." : "Select team member"} />
               </SelectTrigger>
               <SelectContent className="rounded-xl p-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg dark:shadow-none">
@@ -185,23 +191,25 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated }: EditTaskMo
           <DialogFooter className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-3 justify-end">
             <DialogClose render={
               <Button type="button" variant="outline" className="border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 bg-transparent cursor-pointer rounded-xl h-11 text-sm font-semibold px-5 transition-colors">
-                Cancel
+                {isCreator ? "Cancel" : "Close"}
               </Button>
             } />
-            <Button
-              type="submit"
-              disabled={loading || !title.trim()}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5 transition-colors shadow-sm shadow-indigo-500/10"
-            >
-              {loading ? (
-                <div className="flex items-center gap-1.5">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </div>
-              ) : (
-                "Save Changes"
-              )}
-            </Button>
+            {isCreator && (
+              <Button
+                type="submit"
+                disabled={loading || !title.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5 transition-colors shadow-sm shadow-indigo-500/10"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-1.5">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </div>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
