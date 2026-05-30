@@ -204,7 +204,7 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Created By</Label>
               <div className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 rounded-xl h-11 px-4 text-sm flex items-center">
-                {task.created_by_name || "System"}
+                {task.created_by_name ? `${task.created_by_name} (Admin)` : "System"}
               </div>
             </div>
           )}
