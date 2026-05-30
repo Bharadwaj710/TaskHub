@@ -83,6 +83,11 @@ class TaskController:
                 "created_by_name": t.creator.name if t.creator else "Unknown",
                 "assigned_to": t.assigned_to,
                 "assigned_to_name": t.assignee.name if t.assignee else "Unassigned",
+                "product_image_url": getattr(t, 'product_image_url', None),
+                "submitted_at": t.submitted_at if hasattr(t, 'submitted_at') else None,
+                "accepted_at": t.accepted_at if hasattr(t, 'accepted_at') else None,
+                "revision_note": getattr(t, 'revision_note', None),
+                "assigned_at": t.assigned_at if hasattr(t, 'assigned_at') else None,
                 "created_at": t.created_at
             } for t in tasks]
             return api_response(True, "Tasks fetched successfully", data)

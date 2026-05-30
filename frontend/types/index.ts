@@ -26,6 +26,10 @@ export interface Task {
   assigned_to?: string;
   assigned_to_name?: string;
   product_image_url?: string;
+  submitted_at?: string;
+  accepted_at?: string;
+  revision_note?: string;
+  assigned_at?: string;
   created_at: string;
   completed_at?: string;
 }

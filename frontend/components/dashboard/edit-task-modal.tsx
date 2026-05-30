@@ -123,7 +123,25 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated }: EditTaskMo
             Modify the task title, description, or teammate assignment.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 py-4">
+
+        <div className="flex items-center gap-4 pt-4 pb-2">
+          {task.product_image_url ? (
+            <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={task.product_image_url} alt="Product" className="h-full w-full object-cover" />
+            </div>
+          ) : (
+            <div className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">No Image</span>
+            </div>
+          )}
+          <div className="text-sm text-slate-500 dark:text-slate-400 flex flex-col justify-center">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Product Image</span>
+            <span className="text-xs">{task.product_image_url ? "Image provided during creation." : "No product image uploaded."}</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5 py-2">
           <div className="space-y-1.5">
             <Label htmlFor="edit-title" className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Task Title</Label>
             <Input
