@@ -5,19 +5,9 @@ import os
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from flask import current_app
-from models.models import db, Task, GeneratedImage
+from models.models import db, Task, GeneratedImage, GenerationJob
 from config.config import Config
 from supabase import create_client
-
-# Define local models matching the schema for generation_jobs
-class GenerationJob(db.Model):
-    __tablename__ = 'generation_jobs'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False)
-    status = db.Column(db.String(50), nullable=False, default='pending')
-    error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    completed_at = db.Column(db.DateTime, nullable=True)
 
 # Provider factory
 def get_provider():
