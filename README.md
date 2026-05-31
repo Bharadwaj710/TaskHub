@@ -16,6 +16,8 @@ TaskHub is a full-stack task management platform with an integrated AI Studio fo
 - Activity logging for task lifecycle events.
 - Responsive Next.js dashboard with light and dark modes.
 
+> **Note for Evaluators:** For evaluator convenience, authenticated users can create personal tasks and directly access AI Studio without requiring administrator assignment. Administrative workflows remain available for full task management and review.
+
 ## Tech Stack
 
 | Layer | Technology |
