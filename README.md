@@ -36,7 +36,6 @@ TaskHub is a full-stack task management platform with an integrated AI Studio fo
 backend/                  Flask API, services, models, AI providers
 frontend/                 Next.js application
 migrations/               Supabase/PostgreSQL migration scripts
-generated_samples/        Required sample AI Studio outputs
 screenshots/              UI screenshots for submission
 docs/                     Assignment reference and supporting docs
 ```
@@ -86,22 +85,7 @@ Pipeline summary:
 
 This is intentionally pragmatic for the assignment: it prioritizes product preservation, predictable outputs, and explainability.
 
-## Generated Samples
 
-The `generated_samples/` folder contains the required eight representative outputs:
-
-```text
-01_white_background.png
-02_theme_luxury_marble.png
-03_theme_luxury_velvet.png
-04_creative_lifestyle_beach.png
-05_creative_lifestyle_editorial.png
-06_model_front_view.png
-07_model_side_angle.png
-08_model_closeup.png
-```
-
-See `generated_samples/README.md` for the variation notes.
 
 ## Environment Setup
 
