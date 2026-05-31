@@ -1,7 +1,7 @@
 "use client";
 
 import { GeneratedImage, aiService } from "@/services/aiService";
-import { Trash2, Download, Maximize2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -23,7 +23,7 @@ export function ImageGallery({ generations, onDelete }: ImageGalleryProps) {
       } else {
         toast.error(res.message || "Failed to delete image");
       }
-    } catch (e) {
+    } catch {
       toast.error("Network error deleting image");
     } finally {
       setDeleting(null);
@@ -42,7 +42,7 @@ export function ImageGallery({ generations, onDelete }: ImageGalleryProps) {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
-    } catch (e) {
+    } catch {
       toast.error("Failed to download image");
     }
   };

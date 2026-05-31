@@ -11,7 +11,7 @@ export default function LoginPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md shadow-blue-500/20">
             <CheckSquare className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg text-slate-900 tracking-tight">NexTask</span>
+          <span className="font-bold text-lg text-slate-900 tracking-tight">TaskHub</span>
         </div>
 
         {/* Content */}
@@ -19,7 +19,7 @@ export default function LoginPage() {
           <div className="space-y-3">
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
               Welcome back <br />
-              to <span className="text-blue-600">NexTask</span>
+              to <span className="text-blue-600">TaskHub</span>
             </h1>
             <p className="text-sm text-slate-500 leading-relaxed">
               Sign in to continue managing your tasks and track your project progress.
@@ -53,7 +53,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-xs text-slate-400">
-          &copy; 2026 NexTask. All rights reserved.
+          &copy; 2026 TaskHub. All rights reserved.
         </div>
       </div>
 

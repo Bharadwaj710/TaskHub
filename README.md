@@ -1,210 +1,186 @@
-# NexTask: Real-Time Collaborative Task Management Platform
+# TaskHub: AI Product Photography Task Platform
 
-NexTask is a high-performance, collaborative task management application built with a modern decoupled architecture. It features a responsive Next.js frontend (with support for Dark Mode) and a secured Flask REST API backend, backed by PostgreSQL database and Google OAuth via Supabase.
+TaskHub is a full-stack task management platform with an integrated AI Studio for jewelry product campaign generation. Admins create and assign product-photo tasks, users generate the required image variations, and admins review the submitted work.
 
-<br />
+## Features
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center"><b>Secure Google Authentication</b></td>
-      <td align="center"><b>Clean Light Mode Dashboard</b></td>
-    </tr>
-    <tr>
-      <td><img src="screenshots/1-login.png" alt="Login Page" width="400"/></td>
-      <td><img src="screenshots/2-dashboard-light.png" alt="Dashboard Light Mode" width="400"/></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Task Management Modals</b></td>
-      <td align="center"><b>Native Dark Mode Engine</b></td>
-    </tr>
-    <tr>
-      <td><img src="screenshots/3-create-task.png" alt="Create Task" width="400"/></td>
-      <td><img src="screenshots/4-dashboard-dark.png" alt="Dashboard Dark Mode" width="400"/></td>
-    </tr>
-  </table>
-</div>
+- Google and GitHub OAuth through Supabase Auth.
+- Role-based access for admin and user workflows.
+- Admin task creation, assignment, review, acceptance, revision requests, and analytics.
+- User dashboard for assigned work, task progress, and AI Studio access.
+- AI Studio generation flow with product-preserving jewelry compositing.
+- Eight-image campaign target: white background, luxury themes, creative/lifestyle themes, and model-wearing views.
+- Asynchronous generation jobs with polling status.
+- Supabase Storage uploads for product and generated images.
+- Email notifications for assignment, submission, acceptance, completion, and revisions.
+- Activity logging for task lifecycle events.
+- Responsive Next.js dashboard with light and dark modes.
 
-<br />
+## Tech Stack
 
----
+| Layer | Technology |
+| --- | --- |
+| Frontend | Next.js 15, TypeScript, Tailwind CSS |
+| Backend | Flask, SQLAlchemy, Flask-Limiter |
+| Auth | Supabase OAuth |
+| Database | Supabase PostgreSQL |
+| Storage | Supabase Storage |
+| AI Studio | Python, Pillow, OpenCV/rembg-style product extraction, template compositing |
+| Email | SMTP service wrapper |
 
-## 🌟 Key Features
+## Project Structure
 
-* **Real-time Synchronization**: Fully interactive dashboard leveraging PostgreSQL realtime replication. Updates reflect instantly across all active client browsers.
-* **Premium Design & Accessibility**: Premium Tailwind CSS styling, native smooth transitioning Dark Mode, and a responsive drawer navigation optimized for desktop, tablet, and mobile views.
-* **Optimistic UI Status Updates**: Status updates are processed optimistically inside the client browser. Badges and lists update instantly, with self-healing rollbacks in case of network or API errors.
-* **Activity Logs & Timeline**: A centralized audit trail component visualizing user actions, task creations, status updates, and assignment logs.
-* **Secured Backend Services**: Backend access validation rules ensuring that only task creators can edit/delete, and only task creators or assigned users can update status.
-* **Automated SMTP Email Notifications**: Integrated SMTP email service dispatching automatic task-completion notifications to creators.
+```text
+backend/                  Flask API, services, models, AI providers
+frontend/                 Next.js application
+migrations/               Supabase/PostgreSQL migration scripts
+generated_samples/        Required sample AI Studio outputs
+screenshots/              UI screenshots for submission
+docs/                     Assignment reference and supporting docs
+```
 
----
+## Required API Coverage
 
-## 🛠 Tech Stack
+TaskHub exposes the assignment-facing API routes while keeping the internal services reusable:
 
-### Frontend
-* **Core**: Next.js 15 (App Router, TypeScript)
-* **Styling**: Tailwind CSS
-* **Animations**: Framer Motion (for smooth layouts and card-hover transitions)
-* **Auth**: Supabase Client SDK (Google OAuth)
+```text
+POST   /api/auth/oauth/callback
+GET    /api/auth/me
+POST   /api/auth/logout
+
+POST   /api/tasks
+GET    /api/tasks
+GET    /api/tasks/:id
+POST   /api/tasks/:id/assign
+PUT    /api/tasks/:id/accept
+PUT    /api/tasks/:id/request-revision
+DELETE /api/tasks/:id
+
+GET    /api/my-tasks
+PUT    /api/tasks/:id/start
+POST   /api/tasks/:id/submit
+
+POST   /api/tasks/:id/generate
+GET    /api/jobs/:job_id/status
+GET    /api/tasks/:id/generations
+DELETE /api/generations/:id
+```
+
+AI generation is rate limited to 10 jobs per hour. General API traffic uses the global Flask-Limiter configuration.
+
+## AI Studio Approach
+
+The assignment requires the product to remain exactly the same across all generated images. TaskHub handles that by preserving the uploaded product pixels and compositing them into controlled scenes instead of asking a generative model to redraw the jewelry.
+
+Pipeline summary:
+
+1. Extract the jewelry from the uploaded product image.
+2. Clean halo/edge artifacts around the cutout.
+3. Select a variation template based on the requested type and prompt.
+4. Scale and place the jewelry using template-aware rules.
+5. Apply contact shadows and light blending.
+6. Save the generated result to Supabase Storage.
+7. Store metadata in `generated_images`.
+
+This is intentionally pragmatic for the assignment: it prioritizes product preservation, predictable outputs, and explainability.
+
+## Generated Samples
+
+The `generated_samples/` folder contains the required eight representative outputs:
+
+```text
+01_white_background.png
+02_theme_luxury_marble.png
+03_theme_luxury_velvet.png
+04_creative_lifestyle_beach.png
+05_creative_lifestyle_editorial.png
+06_model_front_view.png
+07_model_side_angle.png
+08_model_closeup.png
+```
+
+See `generated_samples/README.md` for the variation notes.
+
+## Environment Setup
 
 ### Backend
-* **Core**: Flask, Flask-SQLAlchemy (PostgreSQL dialect)
-* **Realtime Services**: Supabase Realtime replication engine
-* **Database migrations**: Flask-Migrate
-* **Unit Testing**: Python `unittest` framework
 
----
+Create `backend/.env` from `backend/.env.example`.
 
-## ⚙️ Configuration & Environment Variables
-
-### 1. Backend Config (`/backend/.env`)
-Create a `.env` file inside the `backend` folder:
 ```env
 FLASK_ENV=development
-SECRET_KEY=your-flask-secret-key
+SECRET_KEY=your-secret-key
 DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
 SUPABASE_URL=https://[ref].supabase.co
-SUPABASE_KEY=your-supabase-service-role-key
-
-# Email Notification Server Config (Gmail example)
+SUPABASE_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+ADMIN_EMAIL=admin@example.com
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-gmail-app-password
+SMTP_PASSWORD=your-app-password
 ```
 
-### 2. Frontend Config (`/frontend/.env.local`)
-Create a `.env.local` file inside the `frontend` folder:
+### Frontend
+
+Create `frontend/.env.local` from `frontend/.env.example`.
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://[ref].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
----
+## Running Locally
 
-## 🚀 Running the Project
+Backend:
 
-### Step 1: Run the Backend API
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows
-   .\venv\Scripts\activate
-   # On macOS/Linux
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Start the Flask server:
-   ```bash
-   python app.py
-   ```
-   The backend will start on `http://localhost:5000`.
-
-### Step 2: Run Backend Tests
-To run unit and integration tests:
 ```bash
 cd backend
-python -m unittest test_tasks.py
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
 ```
 
-### Step 3: Run the Frontend App
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install npm dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   The application will start on `http://localhost:3000`.
+Frontend:
 
-4. Build the application for production production deployment check:
-   ```bash
-   ```bash
-   npm run build
-   ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
----
+Open `http://localhost:3000`.
 
-## 🏗 Architecture Overview
+## Validation
 
-The system is built on a decoupled frontend/backend architecture designed for high scalability and secure collaborative access.
+Backend syntax check:
 
-1.  **Frontend (Next.js 15, TypeScript):** Manages the user interface, client-side optimistic updates, and authentication state. Connects directly to Supabase for Google/GitHub OAuth and real-time database subscriptions via WebSockets.
-2.  **Backend API (Flask, SQLAlchemy):** Serves as a secure orchestrator. It receives JWT tokens from the frontend, verifies them securely against Supabase, and acts as the gatekeeper for all data mutations and AI generation pipelines. 
-3.  **Database (Supabase PostgreSQL):** The single source of truth. Handles secure data storage, foreign key relationships, and pushes real-time replication events back to connected Next.js clients.
-4.  **AI Pipeline:** Exposes a robust asynchronous generation architecture (`/api/tasks/:id/generate`) where users can request product photo variations, which are processed using an isolated threading model simulating background workers.
+```bash
+cd backend
+python -m py_compile app.py controllers/*.py routes/*.py services/*.py providers/*.py
+```
 
----
+Frontend production check:
 
-## 🤖 AI Approach: Programmatic Extraction & Compositing
+```bash
+cd frontend
+npm run build
+```
 
-This assignment strictly required: *"The product must appear EXACTLY THE SAME in all generated images."*
+## Database Migrations
 
-To achieve 100% adherence to this requirement while completely circumventing the cost, rate limits, and uncontrollable latency of live third-party AI generative APIs, we engineered a **Programmatic Compositing Pipeline**.
+Apply the SQL files in order through the Supabase SQL Editor:
 
-**How it works:**
-1. The user clicks "Generate".
-2. A background thread is spawned (simulating Celery/RQ).
-3. The frontend polls `/api/jobs/:job_id/status`.
-4. The background job processes the image using the `rembg` library (powered by lightweight ONNX AI models) to flawlessly extract the product pixels.
-5. Using `Pillow`, the exact product is scaled and composited over 8 photorealistic template backgrounds (saved in `assets/templates`).
-6. The generated outputs are uploaded to Supabase Storage and written into the PostgreSQL database.
+```text
+migrations/001_add_role_to_users.sql
+migrations/002_database_refactor.sql
+```
 
-This guarantees mathematical perfection for the "Zero Distortion" rule, which is notoriously impossible to achieve with free generative image-to-image APIs. The generated PNG samples representing this capability are located in the `/generated_samples` directory in this repository.
+## Known Tradeoffs
 
----
-
-## 🗄 Migration Instructions
-
-To safely apply database updates and structure changes, use the provided raw SQL migration scripts against your Supabase SQL Editor. 
-
-1. Open your Supabase Dashboard.
-2. Navigate to the **SQL Editor**.
-3. Create a new query and paste the contents of `migrations/001_add_role_to_users.sql` and run it.
-4. Create another query and paste `migrations/002_database_refactor.sql` and run it.
-
-> **Note:** The backend Flask application uses SQLAlchemy ORM, but the database schema should always be instantiated and altered using these explicit SQL migration scripts to guarantee Supabase compatibility.
-
----
-
-## 🚀 Deployment Instructions
-
-### Deploying the Backend (Render)
-1. Fork or push this repository to GitHub.
-2. Log into Render and create a new **Web Service**.
-3. Select the repository.
-4. **Environment:** Python
-5. **Build Command:** `pip install -r requirements.txt`
-6. **Start Command:** `gunicorn wsgi:app`
-7. Under Environment Variables, add all variables from `backend/.env.example` (make sure to set `FLASK_ENV=production`).
-
-### Deploying the Frontend (Vercel)
-1. Log into Vercel and **Import Project**.
-2. Select the repository and the `frontend` root directory.
-3. Vercel will automatically detect Next.js.
-4. Under Environment Variables, add the values from `frontend/.env.example`.
-5. Ensure `NEXT_PUBLIC_API_URL` points to your newly deployed Render URL!
-6. Click **Deploy**.
-
----
-
-## ⚠️ Known Limitations & Assignment Assumptions
-
-* **Row Level Security (RLS) Deferred:** While the backend implements strict access controls (`token_required`, `admin_required`), database-level RLS policies have been deferred. In a production environment, executing the RLS migration script is required for zero-trust security.
-* **In-Memory Rate Limiting:** We used `Flask-Limiter` with an in-memory storage URI (`memory://`) to keep the deployment lightweight without requiring a dedicated Redis instance. This works perfectly for a single-node deployment, but would fail in a horizontally scaled multi-server environment.
-* **Supabase Auth Triggers:** It is assumed that the Supabase `auth.users` table is the source of truth, and users log in prior to being able to interact with the system. We sync users dynamically upon first login rather than using a complex Postgres trigger to avoid database coupling.
-* **Generic SMTP Mailer:** The generic `smtplib` protocol is used for email notifications instead of a third-party provider like Resend to ensure it can run anywhere without API key dependencies, though it is fully abstracted behind an `EmailService` class.
+- The generation worker uses a lightweight in-process background executor instead of Redis/Celery to keep the assignment deployable.
+- Email is abstracted behind SMTP instead of a provider-specific SDK.
+- Development startup can create tables automatically, but production should rely on migrations.
+- Product realism is strongest for front-facing jewelry assets with clean backgrounds.

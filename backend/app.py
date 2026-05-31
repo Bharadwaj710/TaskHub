@@ -15,7 +15,7 @@ def create_app():
 
     @app.route('/')
     def root_health_check():
-        return jsonify({"status": "healthy", "service": "NexTask API"}), 200
+        return jsonify({"status": "healthy", "service": "TaskHub API"}), 200
 
     with app.app_context():
         # In production, use migrations and avoid running DDL commands on startup.
@@ -45,11 +45,12 @@ def create_app():
 
     # Register blueprints
     from routes.auth_routes import auth_bp
-    from routes.task_routes import task_bp
+    from routes.task_routes import my_tasks_bp, task_bp
     from routes.user_routes import user_bp
     from routes.ai_routes import ai_bp
     app.register_blueprint(auth_bp, url_prefix='/api')
     app.register_blueprint(task_bp, url_prefix='/api/tasks')
+    app.register_blueprint(my_tasks_bp, url_prefix='/api')
     app.register_blueprint(user_bp, url_prefix='/api/users')
     app.register_blueprint(ai_bp, url_prefix='/api')
 
@@ -60,5 +61,8 @@ def create_app():
     return app
 
 if __name__ == "__main__":
+    import glob
     app = create_app()
-    app.run(debug=True, port=5000)
+    # Watch all provider files so Flask reloads when they change
+    extra = glob.glob(os.path.join(os.path.dirname(__file__), "providers", "*.py"))
+    app.run(debug=True, port=5000, use_reloader=True, extra_files=extra)

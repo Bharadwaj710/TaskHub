@@ -4,6 +4,25 @@ from utils.responses import api_response
 
 class TaskController:
     @staticmethod
+    def serialize_task(task):
+        return {
+            "id": task.id,
+            "title": task.title,
+            "description": task.description,
+            "status": task.status,
+            "created_by": task.created_by,
+            "created_by_name": task.creator.name if task.creator else "Unknown",
+            "assigned_to": task.assigned_to,
+            "assigned_to_name": task.assignee.name if task.assignee else "Unassigned",
+            "product_image_url": getattr(task, 'product_image_url', None),
+            "submitted_at": task.submitted_at if hasattr(task, 'submitted_at') else None,
+            "accepted_at": task.accepted_at if hasattr(task, 'accepted_at') else None,
+            "revision_note": getattr(task, 'revision_note', None),
+            "assigned_at": task.assigned_at if hasattr(task, 'assigned_at') else None,
+            "created_at": task.created_at
+        }
+
+    @staticmethod
     def create_task():
         data = request.get_json()
         if not data or 'title' not in data:
@@ -74,31 +93,77 @@ class TaskController:
     def get_tasks():
         try:
             tasks = TaskService.get_user_tasks(request.user_id)
-            data = [{
-                "id": t.id, 
-                "title": t.title, 
-                "description": t.description,
-                "status": t.status, 
-                "created_by": t.created_by,
-                "created_by_name": t.creator.name if t.creator else "Unknown",
-                "assigned_to": t.assigned_to,
-                "assigned_to_name": t.assignee.name if t.assignee else "Unassigned",
-                "product_image_url": getattr(t, 'product_image_url', None),
-                "submitted_at": t.submitted_at if hasattr(t, 'submitted_at') else None,
-                "accepted_at": t.accepted_at if hasattr(t, 'accepted_at') else None,
-                "revision_note": getattr(t, 'revision_note', None),
-                "assigned_at": t.assigned_at if hasattr(t, 'assigned_at') else None,
-                "created_at": t.created_at
-            } for t in tasks]
+            data = [TaskController.serialize_task(t) for t in tasks]
             return api_response(True, "Tasks fetched successfully", data)
         except Exception as e:
             return api_response(False, str(e), status_code=500)
 
     @staticmethod
+    def get_task(task_id):
+        try:
+            task = TaskService.get_accessible_task(task_id, request.user_id)
+            if not task:
+                return api_response(False, "Task not found", status_code=404)
+            return api_response(True, "Task fetched successfully", TaskController.serialize_task(task))
+        except PermissionError as pe:
+            return api_response(False, str(pe), status_code=403)
+        except Exception as e:
+            return api_response(False, str(e), status_code=500)
+
+    @staticmethod
+    def get_my_tasks():
+        return TaskController.get_tasks()
+
+    @staticmethod
+    def assign_task(task_id):
+        data = request.get_json(silent=True) or {}
+        assigned_to = data.get('assigned_to')
+        if not assigned_to:
+            return api_response(False, "assigned_to is required", status_code=400)
+
+        try:
+            task = TaskService.update_task(task_id, {"assigned_to": assigned_to}, request.user_id)
+            if not task:
+                return api_response(False, "Task not found", status_code=404)
+            return api_response(True, "Task assigned successfully", TaskController.serialize_task(task))
+        except PermissionError as pe:
+            return api_response(False, str(pe), status_code=403)
+        except Exception as e:
+            return api_response(False, str(e), status_code=500)
+
+    @staticmethod
+    def start_task(task_id):
+        return TaskController.update_task_status_alias(task_id, "In Progress", "Task started successfully")
+
+    @staticmethod
+    def submit_task(task_id):
+        return TaskController.update_task_status_alias(task_id, "Submitted", "Task submitted successfully")
+
+    @staticmethod
+    def accept_task(task_id):
+        return TaskController.update_task_status_alias(task_id, "Accepted", "Task accepted successfully")
+
+    @staticmethod
+    def request_revision(task_id):
+        return TaskController.update_task_status_alias(task_id, "Revision Requested", "Revision requested successfully")
+
+    @staticmethod
+    def update_task_status_alias(task_id, status, success_message):
+        try:
+            task = TaskService.update_task_status(task_id, status, request.user_id)
+            if not task:
+                return api_response(False, "Task not found", status_code=404)
+            return api_response(True, success_message, {"id": task.id, "status": task.status})
+        except PermissionError as pe:
+            return api_response(False, str(pe), status_code=403)
+        except Exception as e:
+            return api_response(False, str(e), status_code=500)
+
+    @staticmethod
     def update_status():
-        data = request.get_json()
-        task_id = request.json.get('id')
-        status = request.json.get('status')
+        data = request.get_json(silent=True) or {}
+        task_id = data.get('id')
+        status = data.get('status')
         
         if not task_id or not status:
             return api_response(False, "Task ID and status are required", status_code=400)

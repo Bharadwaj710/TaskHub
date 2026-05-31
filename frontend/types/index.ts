@@ -6,7 +6,8 @@ export type TaskStatus =
   | 'In Progress'
   | 'Submitted'
   | 'Accepted'
-  | 'Revision Requested';
+  | 'Revision Requested'
+  | 'Completed';
 
 export interface UserProfile {
   id: string;
@@ -48,4 +49,14 @@ export interface AnalyticsData {
   in_progress_tasks: number;
   submitted_tasks: number;
   accepted_tasks: number;
+}
+
+export interface ActivityLog {
+  id: number;
+  task_id: number;
+  task_title: string;
+  action: string;
+  performed_by: string;
+  performed_by_name: string;
+  created_at: string;
 }

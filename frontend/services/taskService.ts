@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Task, ApiResponse } from "@/types";
+import { ActivityLog, Task, ApiResponse } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api";
 
@@ -23,6 +23,14 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 export const taskService = {
   async getTasks(): Promise<ApiResponse<Task[]>> {
     return fetchWithAuth("/tasks");
+  },
+
+  async getMyTasks(): Promise<ApiResponse<Task[]>> {
+    return fetchWithAuth("/my-tasks");
+  },
+
+  async getTask(id: number): Promise<ApiResponse<Task>> {
+    return fetchWithAuth(`/tasks/${id}`);
   },
 
   async createTask(taskData: Partial<Task>): Promise<ApiResponse> {
@@ -60,6 +68,37 @@ export const taskService = {
     });
   },
 
+  async assignTask(id: number, assignedTo: string): Promise<ApiResponse<Task>> {
+    return fetchWithAuth(`/tasks/${id}/assign`, {
+      method: "POST",
+      body: JSON.stringify({ assigned_to: assignedTo }),
+    });
+  },
+
+  async startTask(id: number): Promise<ApiResponse> {
+    return fetchWithAuth(`/tasks/${id}/start`, {
+      method: "PUT",
+    });
+  },
+
+  async submitTask(id: number): Promise<ApiResponse> {
+    return fetchWithAuth(`/tasks/${id}/submit`, {
+      method: "POST",
+    });
+  },
+
+  async acceptTask(id: number): Promise<ApiResponse> {
+    return fetchWithAuth(`/tasks/${id}/accept`, {
+      method: "PUT",
+    });
+  },
+
+  async requestRevision(id: number): Promise<ApiResponse> {
+    return fetchWithAuth(`/tasks/${id}/request-revision`, {
+      method: "PUT",
+    });
+  },
+
   async deleteTask(id: number): Promise<ApiResponse> {
     return fetchWithAuth(`/tasks/${id}`, {
       method: "DELETE",
@@ -73,7 +112,7 @@ export const taskService = {
     });
   },
 
-  async getActivities(): Promise<ApiResponse<any[]>> {
+  async getActivities(): Promise<ApiResponse<ActivityLog[]>> {
     return fetchWithAuth("/tasks/activities");
   },
 

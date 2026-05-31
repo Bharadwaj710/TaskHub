@@ -44,8 +44,9 @@ export function GenerationControls({ taskId, onGenerationCompleted, disabled }: 
       
       const jobId = res.data.job_id;
       pollJobStatus(jobId);
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      toast.error(message);
       setGenerating(false);
       setPollingStatus("");
     }

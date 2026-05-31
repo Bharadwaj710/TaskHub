@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { aiService, GeneratedImage } from "@/services/aiService";
 import { taskService } from "@/services/taskService";
 import { Task } from "@/types";
@@ -15,16 +15,15 @@ export function AIStudioInterface({ taskId }: { taskId: number }) {
   const [generations, setGenerations] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [taskRes, genRes] = await Promise.all([
-        taskService.getTasks(), // Ideally we'd have a getTask(id)
+        taskService.getTask(taskId),
         aiService.getTaskGenerations(taskId)
       ]);
       
       if (taskRes.success) {
-        const foundTask = taskRes.data.find(t => t.id === taskId);
-        setTask(foundTask || null);
+        setTask(taskRes.data);
       }
       if (genRes.success) {
         setGenerations(genRes.data);
@@ -35,11 +34,11 @@ export function AIStudioInterface({ taskId }: { taskId: number }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [taskId]);
 
   useEffect(() => {
     loadData();
-  }, [taskId]);
+  }, [loadData]);
 
   const handleGenerationCompleted = () => {
     loadData(); // Refresh the gallery

@@ -55,6 +55,11 @@ class AuthController:
             return api_response(False, f"Internal server error: {str(e)}", status_code=500)
 
     @staticmethod
+    def oauth_callback():
+        """Assignment-compatible alias for Supabase OAuth session sync."""
+        return AuthController.sync_user()
+
+    @staticmethod
     def get_me():
         """Return current authenticated user's profile including role."""
         user_id = getattr(request, 'user_id', None)
@@ -71,3 +76,8 @@ class AuthController:
             })
         except Exception as e:
             return api_response(False, str(e), status_code=500)
+
+    @staticmethod
+    def logout():
+        """Supabase owns token revocation; the frontend clears the session."""
+        return api_response(True, "Logged out successfully", {})

@@ -25,7 +25,7 @@ import {
 import { useEffect, useState } from "react";
 import { userService } from "@/services/userService";
 import { taskService } from "@/services/taskService";
-import { UserProfile, Task } from "@/types";
+import { UserProfile, Task, TaskStatus } from "@/types";
 import { Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ interface EditTaskModalProps {
   task: Task;
   currentUserId: string | null;
   onTaskUpdated: () => void;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
 }
 
 export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: EditTaskModalProps) {
@@ -98,7 +98,15 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
   const handleStatusUpdate = async (newStatus: TaskStatus) => {
     setLoading(true);
     try {
-      const res = await taskService.updateStatus(task.id, newStatus);
+      const res = newStatus === "In Progress"
+        ? await taskService.startTask(task.id)
+        : newStatus === "Submitted"
+          ? await taskService.submitTask(task.id)
+          : newStatus === "Accepted"
+            ? await taskService.acceptTask(task.id)
+            : newStatus === "Revision Requested"
+              ? await taskService.requestRevision(task.id)
+              : await taskService.updateStatus(task.id, newStatus);
       if (res.success) {
         setOpen(false);
         toast.success(`Task marked as ${newStatus}`);
@@ -242,7 +250,7 @@ export function EditTaskModal({ task, currentUserId, onTaskUpdated, trigger }: E
             )}
             {!isCreator && task.status === 'In Progress' && (
               <Button type="button" onClick={() => handleStatusUpdate("Submitted")} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold cursor-pointer rounded-xl h-11 text-sm px-5">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Work"}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit 8 Images"}
               </Button>
             )}
             {!isCreator && task.status === 'Revision Requested' && (

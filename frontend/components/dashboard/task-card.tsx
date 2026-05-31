@@ -1,14 +1,8 @@
 "use client";
 
 import { Task, TaskStatus } from "@/types";
-import { Calendar, Loader2, MoreVertical, Trash2 } from "lucide-react";
+import { Calendar, Loader2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { taskService } from "@/services/taskService";
 import { EditTaskModal } from "@/components/dashboard/edit-task-modal";
 import { useState, useEffect } from "react";
@@ -16,7 +10,11 @@ import { toast } from "sonner";
 
 const statusColors: Record<TaskStatus, string> = {
   Pending: "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/35",
+  Assigned: "bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-900/35",
   "In Progress": "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/35",
+  Submitted: "bg-cyan-50 dark:bg-cyan-950/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/35",
+  Accepted: "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/35",
+  "Revision Requested": "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-900/35",
   Completed: "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/35",
 };
 
@@ -34,37 +32,6 @@ export function TaskCard({ task, currentUserId, onStatusChanged }: TaskCardProps
   useEffect(() => {
     setLocalStatus(task.status);
   }, [task.status]);
-
-  const handleStatusChange = async (newStatus: TaskStatus) => {
-    if (newStatus === localStatus) return;
-    
-    const previousStatus = localStatus;
-    // Set optimistically
-    setLocalStatus(newStatus);
-    
-    try {
-      const res = await taskService.updateStatus(task.id, newStatus);
-      if (res.success) {
-        if (newStatus === "Completed") {
-          toast.success("Task completed!", {
-            description: "Email notification has been dispatched to the creator.",
-          });
-        } else {
-          toast.success(`Task status updated to "${newStatus}"`);
-        }
-        onStatusChanged();
-      } else {
-        // Revert
-        setLocalStatus(previousStatus);
-        toast.error(res.message || "Failed to update task status");
-      }
-    } catch (error) {
-      // Revert
-      setLocalStatus(previousStatus);
-      console.error("Failed to update status:", error);
-      toast.error("Failed to update task status due to network error.");
-    }
-  };
 
   const handleDeleteTask = async () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this task?");

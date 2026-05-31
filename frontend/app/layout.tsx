@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "NexTask Task Management",
+  title: "TaskHub AI Studio",
   description: "A premium task management application with async email notifications",
 };
 

@@ -3,6 +3,8 @@ from datetime import datetime
 from services.email_service import EmailService
 
 class TaskService:
+    REQUIRED_GENERATION_COUNT = 8
+
     @staticmethod
     def create_task(data, user_id):
         assigned_to = data.get('assigned_to')
@@ -56,6 +58,21 @@ class TaskService:
         ).order_by(Task.created_at.desc()).all()
 
     @staticmethod
+    def get_accessible_task(task_id, user_id):
+        task = db.session.get(Task, task_id)
+        if not task:
+            return None
+
+        user_id_str = str(user_id) if user_id else None
+        created_by_str = str(task.created_by) if task.created_by else None
+        assigned_to_str = str(task.assigned_to) if task.assigned_to else None
+
+        if created_by_str != user_id_str and assigned_to_str != user_id_str:
+            raise PermissionError("You do not have access to this task")
+
+        return task
+
+    @staticmethod
     def update_task_status(task_id, status, user_id):
         task = db.session.get(Task, task_id)
         if not task:
@@ -84,8 +101,10 @@ class TaskService:
             elif status == 'Submitted':
                 from models.models import GeneratedImage
                 image_count = GeneratedImage.query.filter_by(task_id=task_id).count()
-                if image_count == 0:
-                    raise PermissionError("You must generate at least one image before submitting the task")
+                if image_count < TaskService.REQUIRED_GENERATION_COUNT:
+                    raise PermissionError(
+                        f"You must generate {TaskService.REQUIRED_GENERATION_COUNT} images before submitting the task"
+                    )
             elif status not in ['In Progress', 'Submitted']:
                 raise PermissionError(f"Assignees cannot change status to {status}")
                 

@@ -13,7 +13,6 @@ import {
   ChevronRight,
   LayoutDashboard,
   Users,
-  BarChart3,
   ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,7 +85,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
             <CheckSquare className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
+          <span className="font-bold text-lg text-slate-900 dark:text-slate-50 tracking-tight">TaskHub</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -107,7 +106,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <CheckSquare className="h-5.5 w-5.5" />
               </div>
               <div>
-                <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">NexTask</span>
+                <span className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">TaskHub</span>
                 {/* Role badge */}
                 {isAdmin && (
                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
