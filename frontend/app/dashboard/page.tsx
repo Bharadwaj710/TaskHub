@@ -201,9 +201,7 @@ export default function DashboardPage() {
 
         {/* Action icons */}
         <div className="flex items-center justify-end gap-3 shrink-0">
-          {isAdmin && (
-            <CreateTaskModal currentUserId={currentUserId} onTaskCreated={fetchTasks} />
-          )}
+          <CreateTaskModal currentUserId={currentUserId} onTaskCreated={fetchTasks} />
         </div>
       </div>
 
